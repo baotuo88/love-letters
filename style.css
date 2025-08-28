@@ -1,0 +1,446 @@
+/* 数字情书生成器 - 紧凑布局 + 上传区排版修复 + 预览卡片居中 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 页面从顶部开始，避免初始“被拉长” */
+body {
+  background: linear-gradient(135deg, #ff9ec5 0%, #ff6b9c 100%);
+  color: #fff;
+  display: block;               /* 不再用 flex 居中 */
+  padding: 20px 16px;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ===== 布局 ===== */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;               /* 居中 */
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 左表单 + 右预览（编辑页保持双栏） */
+  gap: 20px;
+  z-index: 20;
+}
+
+/* 顶部标题更紧凑，并粘顶（滚动时保持可见） */
+.header {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 6px;
+  z-index: 5;
+  padding: 10px 8px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 8px 18px rgba(0,0,0,.18);
+  text-align: center;
+}
+.header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-shadow: 0 6px 16px rgba(0,0,0,.22);
+}
+.header p {
+  margin-top: 4px;
+  font-size: .95rem;
+  opacity: .9;
+  color: #ffe6f2;
+}
+
+/* ===== 卡片统一外观（表单 / 预览） ===== */
+.form-container,
+.preview-container {
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.22);
+  padding: 20px;
+  position: relative;
+  /* 桌面端给卡片设置“上限高度”，避免整页过长 */
+  max-height: calc(100vh - 150px);
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+.preview-container { background: rgba(255,255,255,.16); }
+
+/* ===== 表单 ===== */
+.form-group { margin-bottom: 14px; }
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1rem;
+  color: #ffe6f2;
+  text-shadow: 0 1px 3px rgba(0,0,0,.18);
+  font-weight: 600;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,.95);
+  font-size: 1rem;
+  color: #333;
+  transition: all .2s ease;
+  border: 2px solid transparent;
+}
+.form-input:focus {
+  outline: none;
+  border-color: #ff9ec5;
+  box-shadow: 0 0 0 3px rgba(255,158,197,.28);
+}
+
+textarea.form-input {
+  min-height: 140px;            /* 更紧凑 */
+  resize: vertical;
+  line-height: 1.7;
+}
+.char-count {
+  text-align: right;
+  font-size: .85rem;
+  color: rgba(255,255,255,.85);
+  margin-top: 4px;
+}
+
+/* ===== 上传文件区域（排版修复） ===== */
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#bg-image { display: none; }     /* 隐藏原始 input，改用 label 触发 */
+
+.upload-btn {
+  background: rgba(255,158,197,.35);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .2s ease;
+  font-size: .9rem;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.upload-btn:hover {
+  background: rgba(255,158,197,.55);
+  transform: translateY(-1px);
+}
+.file-name {
+  font-size: .9rem;
+  color: #fff;
+  opacity: .9;
+  max-width: 320px;             /* ⭐ 文件名过长省略 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#preview {
+  display: none;
+  margin-top: 10px;
+  border-radius: 10px;
+  max-height: 160px;
+  object-fit: cover;
+  box-shadow: 0 6px 14px rgba(0,0,0,.22);
+}
+
+/* 主要按钮 */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ff9ec5, #ff6b9c);
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all .2s ease;
+  box-shadow: 0 10px 20px rgba(255,107,156,.32);
+  margin-top: 14px;
+}
+.submit-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 24px rgba(255,107,156,.42); }
+.submit-btn:active { transform: scale(.98); }
+
+/* ===== 预览卡片（垂直居中 + 上下留白） ===== */
+.preview-card {
+  background: rgba(255,255,255,.05);
+  border-radius: 16px;
+  padding: 40px 28px;            /* 加大上下内边距 */
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;        /* 垂直布局 */
+  justify-content: center;       /* 垂直居中内容 */
+  text-align: left;
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 22px rgba(0,0,0,.14);
+}
+/* 有本地预览背景时的暗层，保证文字可读 */
+.preview-card.has-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: rgba(0,0,0,.26);
+  backdrop-filter: blur(1.8px);
+  -webkit-backdrop-filter: blur(1.8px);
+  z-index: 1;
+}
+.preview-content { position: relative; z-index: 2; }
+.preview-text   { text-shadow: 0 2px 10px rgba(0,0,0,.45); }
+
+/* ===== 分享区域 ===== */
+.share-container { display: flex; flex-direction: column; gap: 12px; }
+.link-input-group { display: flex; gap: 8px; }
+#generated-link {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.15);
+  color: white;
+  font-size: .9rem;
+}
+.copy-btn {
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.25);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  cursor: pointer;
+}
+.copy-btn:hover { background: rgba(255,255,255,.35); }
+
+.share-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.share-btn {
+  flex: 1; min-width: 120px; padding: 10px 12px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 10px; color: white; cursor: pointer;
+  transition: all .2s ease; font-size: .95rem;
+}
+.share-btn:hover { background: rgba(255,255,255,.28); transform: translateY(-1px); }
+.share-btn:active { transform: scale(.98); }
+
+/* ===== toast ===== */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.72);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.22);
+  opacity: 0;
+  visibility: hidden;
+  transition: all .25s ease;
+  z-index: 9999;
+}
+.toast.show { opacity: 1; visibility: visible; transform: translate(-50%, -6px); }
+
+/* ===== 爱心动画 ===== */
+.heart {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  animation: floatUp 6s ease-in-out forwards;
+  font-size: 24px;
+  color: #ff9ec5;
+  text-shadow: 0 0 12px rgba(255,158,197,.7);
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { opacity: .8; }
+  100% { transform: translateY(-150vh) scale(0.5); opacity: 0; }
+}
+
+/* ===== 音乐按钮 ===== */
+.hidden { display: none; }
+.music-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 46px;
+  height: 46px;
+  background: rgba(255,255,255,.25);
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 15px rgba(0,0,0,.22);
+  transition: all .2s ease;
+}
+.music-btn:hover { background: rgba(255,255,255,.35); transform: scale(1.05); }
+
+/* ===== 查看页：全屏背景 + 暗层（URL 打开时用） ===== */
+#bg-fullscreen {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+}
+#bg-fullscreen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* ===== 响应式（编辑页与通用） ===== */
+@media (max-width: 900px) {
+  .container { grid-template-columns: 1fr; gap: 16px; }
+  /* 移动端不限制卡片高度，避免嵌套滚动 */
+  .form-container, .preview-container { max-height: none; overflow: visible; }
+  .header { position: static; margin-bottom: 10px; }
+  .header h1 { font-size: 1.8rem; }
+}
+
+/* ===== 预览页排版优化 ===== */
+
+/* 顶部标题条：收窄宽度、半透明磨砂、靠中 */
+.view-header {
+  grid-column: 1 / -1;
+  max-width: 980px;
+  margin: 12px auto 8px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  text-align: center;
+}
+.view-header h1 {
+  font-size: 2.2rem;
+  margin: 0;
+}
+.view-header p {
+  margin-top: 4px;
+  opacity: .9;
+}
+
+/* “信纸面板”：限制正文宽度、统一左对齐、适度留白与对比度 */
+.letter-panel {
+  max-width: 960px;
+  margin: 22px auto;
+  padding: 28px 26px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.18);      /* 让文字和背景有足够对比 */
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.24);
+  /* ✨ 预览页进入时淡入上浮 */
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 1.2s ease forwards;
+}
+
+/* 面板内文字层级与版式 */
+.letter-panel .preview-header h2 {
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+.letter-panel .preview-text {
+  text-align: left;
+  font-size: 1.15rem;
+  line-height: 1.95;
+  text-shadow: 0 2px 10px rgba(0,0,0,.45);
+}
+/* ✨ 轻微闪光的小星星 */
+.letter-panel .preview-text p {
+  position: relative;
+}
+.letter-panel .preview-text p::after {
+  content: "✨";
+  position: absolute;
+  top: -10px;
+  right: -14px;
+  opacity: 0;
+  animation: twinkle 4s infinite;
+}
+
+.letter-panel .preview-text p { margin: 10px 0; }
+.letter-panel .preview-signature {
+  margin-top: 22px;
+  opacity: .95;
+}
+
+/* 让卡片始终在视觉中心区域，不会贴太上/太下 */
+#view-card {
+  background: transparent;           /* 背景交给面板处理 */
+  box-shadow: none;
+  padding: 0;
+  display: block;                    /* 取消居中 flex，避免内容被挤 */
+}
+
+/* ⭐ 仅在“预览页”宽屏时单列，编辑页不受影响 */
+@media (min-width: 900px) {
+  .view-mode .container {            /* 只有 body 上有 .view-mode 才生效 */
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ======= 浪漫增强：仅在预览页生效的背景呼吸动画 ======= */
+body.view-mode {
+  background: linear-gradient(135deg, #ff9ec5, #ff6b9c, #ffc3d6);
+  background-size: 300% 300%;
+  animation: bgflow 12s ease-in-out infinite;
+}
+
+/* 流星视觉元素 */
+.meteor {
+  position: fixed;
+  top: -40px;
+  width: 2px;
+  height: 80px;
+  background: linear-gradient(45deg, #fff, transparent);
+  opacity: 0.8;
+  transform: rotate(45deg);
+  animation: fall 3s linear forwards;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+/* ======= 关键帧 ======= */
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes twinkle {
+  0%, 90%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+}
+@keyframes bgflow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes fall {
+  0% { transform: translate(0,0) rotate(45deg); opacity: 1; }
+  100% { transform: translate(-200px, 400px) rotate(45deg); opacity: 0; }
+}

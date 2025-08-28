@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数字情书生成器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 飘动爱心容器 -->
+  <div class="floating-hearts" id="floating-hearts"></div>
+
+  <!-- 背景音乐（编辑页不自动播，查看页自动播） -->
+  <audio id="bgm" src="assets/bg-music.mp3" preload="auto" loop></audio>
+  <button id="music-toggle" class="music-btn hidden" aria-label="切换音乐">🔊</button>
+
+  <div class="container">
+    <!-- 顶部标题 -->
+    <div class="header">
+      <h1>💌 数字情书生成器</h1>
+      <p style="opacity:.9;">创建并分享你的专属情书（内容与背景图将存至云端，通过短链接查看）</p>
+    </div>
+
+    <!-- 表单区域 -->
+    <div class="form-container" id="form-panel">
+      <div class="form-group">
+        <label for="from-name">你的名字</label>
+        <input type="text" id="from-name" class="form-input" placeholder="请输入你的名字" />
+      </div>
+      <div class="form-group">
+        <label for="to-name">TA 的名字</label>
+        <input type="text" id="to-name" class="form-input" placeholder="请输入TA的名字" />
+      </div>
+      <div class="form-group">
+        <label for="message">想说的话</label>
+        <textarea id="message" class="form-input" placeholder="写下你最想对TA说的话..." required></textarea>
+        <div class="char-count">0/500</div>
+      </div>
+      <div class="form-group">
+        <label>背景图片（可选）</label>
+        <div class="file-upload">
+          <label class="upload-btn" for="bg-image"><span>📁</span>选择图片</label>
+          <input type="file" id="bg-image" accept="image/*" />
+          <span class="file-name" id="file-name">未选择文件</span>
+        </div>
+        <div class="hint" style="font-size:.85rem;opacity:.9;margin-top:6px;">
+          图片会在本地压缩后上传到云端（大小适中更快更稳定）。分享短链接，对方也能看到背景图。
+        </div>
+      </div>
+      <button id="submit-btn" class="submit-btn">生成情书链接</button>
+    </div>
+
+    <!-- 预览 + 分享 -->
+    <div class="preview-container">
+      <div class="preview-card" id="preview-card">
+        <div class="preview-content">
+          <div class="preview-header">
+            <h2>亲爱的 <span id="preview-to">某某</span>，</h2>
+          </div>
+          <div class="preview-text">
+            <p><span id="preview-from">某人</span> 想对你说：</p>
+            <p id="preview-message" style="margin:18px 0;font-style:italic;line-height:2;">
+              这是一封神秘的情书~
+            </p>
+          </div>
+          <div class="preview-signature">
+            <p>With Love,</p>
+            <p style="font-weight:bold;margin-top:10px;" id="preview-signature">某人</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="share-container" id="share-container" style="display:none;">
+        <h3>分享你的情书</h3>
+        <p>复制下面的链接发送给 TA：</p>
+        <div class="link-input-group">
+          <input type="text" id="generated-link" readonly />
+          <button class="copy-btn" id="copy-btn">复制</button>
+        </div>
+        <div class="share-buttons">
+          <button class="share-btn" id="share-qq">QQ分享</button>
+          <button class="share-btn" id="share-wechat">微信分享</button>
+          <button class="share-btn" id="share-xiaohongshu">小红书</button>
+        </div>
+        <div class="hint" id="bg-hint" style="display:none;text-align:center;margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- toast 提示 -->
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
